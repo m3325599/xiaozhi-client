@@ -2,6 +2,16 @@
 
 本文档记录项目的所有重要变更。
 
+## [2.4.0-beta.2](https://github.com/shenjingnan/xiaozhi-client/compare/v2.4.0-beta.1...v2.4.0-beta.2) (2026-04-29)
+
+### Code Refactoring
+
+* **mcp:** 拆分 callTool 方法降低圈复杂度 ([#3502](https://github.com/shenjingnan/xiaozhi-client/issues/3502)) ([bd0fb01](https://github.com/shenjingnan/xiaozhi-client/commit/bd0fb0143c6fb720f1b3b0e3e8944a0e592581a3))
+* **mcp:** 统一 ToolCallResult 类型定义，明确 MCP 管理器分层 ([#3501](https://github.com/shenjingnan/xiaozhi-client/issues/3501)) ([956045e](https://github.com/shenjingnan/xiaozhi-client/commit/956045e9ce09785f4167eb008bd4e690849bc9e9))
+* **types:** 消除非测试代码中的 as any 类型断言 ([#3503](https://github.com/shenjingnan/xiaozhi-client/issues/3503)) ([9c6f60e](https://github.com/shenjingnan/xiaozhi-client/commit/9c6f60ebc4ee4bba82bf89cdc109bc1e5370234c))
+* **types:** 统一 MCP 类型定义，消除跨模块重复 ([#3500](https://github.com/shenjingnan/xiaozhi-client/issues/3500)) ([21389df](https://github.com/shenjingnan/xiaozhi-client/commit/21389df8f78839c8fadbae1f1b5430e3bcd2e007))
+* 修复 P2/P3 代码质量问题 ([#3504](https://github.com/shenjingnan/xiaozhi-client/issues/3504)) ([bf7f079](https://github.com/shenjingnan/xiaozhi-client/commit/bf7f0799513fd2c3de85f4f933066d60beb3c127))
+
 ## [2.4.0-beta.1](https://github.com/shenjingnan/xiaozhi-client/compare/v2.4.0-beta.0...v2.4.0-beta.1) (2026-04-25)
 
 ### Features
