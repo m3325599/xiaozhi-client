@@ -3,6 +3,8 @@
  */
 
 import type { Command } from "commander";
+// biome-ignore lint: 需要值导入以支持 typeof 类型查询
+import { VersionUtils } from "../../utils/version";
 import { ErrorHandler } from "../errors/ErrorHandlers";
 import type {
   CommandHandler,
@@ -150,7 +152,8 @@ export class CommandRegistry implements ICommandRegistry {
    * 注册版本命令
    */
   private registerVersionCommand(program: Command): void {
-    const versionUtils = this.container.get("versionUtils") as any;
+    const versionUtils =
+      this.container.get<typeof VersionUtils>("versionUtils");
 
     program.version(versionUtils.getVersion(), "-v, --version", "显示版本信息");
 
