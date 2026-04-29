@@ -36,7 +36,6 @@ const useConfig = vi.hoisted(() =>
     },
   }))
 );
-const mockUseConnectionStatus = vi.hoisted(() => vi.fn(() => true));
 const mockUseVoiceInteractionConfig = vi.hoisted(() =>
   vi.fn(() => ({
     asr: { appid: "test-appid", accessToken: "test-token" },
@@ -62,7 +61,6 @@ vi.mock("@/stores/config", () => ({
 }));
 
 vi.mock("@/stores/status", () => ({
-  useConnectionStatus: mockUseConnectionStatus,
   useStatusStore: vi.fn(() => ({
     clientStatus: { status: "connected" as const },
     loading: { isLoading: false, isRestarting: false },
@@ -77,9 +75,6 @@ vi.mock("@/components/mcp-endpoint-setting-button", () => ({
   McpEndpointSettingButton: () => (
     <div data-testid="mcp-endpoint-setting-button" />
   ),
-}));
-vi.mock("@/components/web-url-setting-button", () => ({
-  WebUrlSettingButton: () => <div data-testid="web-url-setting-button" />,
 }));
 vi.mock("@/components/tool-call-logs-dialog", () => ({
   ToolCallLogsDialog: () => <div data-testid="tool-call-logs-dialog" />,
@@ -122,7 +117,6 @@ describe("DashboardStatusCard", () => {
         reconnectInterval: 5000,
       },
     });
-    mockUseConnectionStatus.mockReturnValue(true);
     mockUseVoiceInteractionConfig.mockReturnValue({
       asr: { appid: "test-appid", accessToken: "test-token" },
       llm: {
@@ -146,10 +140,6 @@ describe("DashboardStatusCard", () => {
     // 检查端点数量显示
     expect(screen.getByText("1")).toBeInTheDocument(); // 小智接入点: 1
 
-    // 检查Xiaozhi Client卡片
-    expect(screen.getByText("Xiaozhi Client")).toBeInTheDocument();
-    expect(screen.getByText("已连接")).toBeInTheDocument();
-
     // 检查MCP服务卡片 - 新格式为 "已连接 X 个，共 Y 个服务"
     expect(screen.getByText("MCP服务")).toBeInTheDocument();
     expect(screen.getByText("已连接 1 个，共 1 个服务")).toBeInTheDocument();
@@ -163,15 +153,7 @@ describe("DashboardStatusCard", () => {
     expect(
       screen.getByTestId("mcp-endpoint-setting-button")
     ).toBeInTheDocument();
-    expect(screen.getByTestId("web-url-setting-button")).toBeInTheDocument();
     expect(screen.getByTestId("tool-call-logs-dialog")).toBeInTheDocument();
-  });
-
-  it("应该正确显示服务端 URL", () => {
-    render(<DashboardStatusCard />);
-
-    // 基于 HTTP 的服务端 URL
-    expect(screen.getByText(/http:/)).toBeInTheDocument();
   });
 
   it("应该正确渲染多个MCP端点", () => {
@@ -187,15 +169,6 @@ describe("DashboardStatusCard", () => {
     // 使用getAllByText来获取所有的"3"，确保至少存在一个
     const endpointCounts = screen.getAllByText("3");
     expect(endpointCounts.length).toBeGreaterThanOrEqual(1);
-  });
-
-  it("应该正确处理未连接状态", () => {
-    // Mock未连接状态
-    mockUseConnectionStatus.mockReturnValue(false);
-
-    render(<DashboardStatusCard />);
-
-    expect(screen.getByText("未连接")).toBeInTheDocument();
   });
 
   it("应该正确处理空MCP服务器", () => {
@@ -228,14 +201,14 @@ describe("DashboardStatusCard", () => {
     const gridContainer = container.querySelector(".grid");
     expect(gridContainer).toHaveClass("grid-cols-1", "gap-4", "px-4");
     expect(gridContainer).toHaveClass("@xl/main:grid-cols-2");
-    expect(gridContainer).toHaveClass("@5xl/main:grid-cols-5");
+    expect(gridContainer).toHaveClass("@5xl/main:grid-cols-4");
   });
 
   it("应该正确渲染MiniCircularProgress组件", () => {
     const { container } = render(<DashboardStatusCard />);
 
-    // 检查是否有5个进度圆形组件（每个卡片一个）
+    // 检查是否有4个进度圆形组件（每个卡片一个）
     const progressCircles = container.querySelectorAll("svg");
-    expect(progressCircles.length).toBeGreaterThanOrEqual(5);
+    expect(progressCircles.length).toBeGreaterThanOrEqual(4);
   });
 });
