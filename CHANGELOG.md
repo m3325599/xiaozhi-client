@@ -2,6 +2,18 @@
 
 本文档记录项目的所有重要变更。
 
+## [2.4.0-beta.3](https://github.com/shenjingnan/xiaozhi-client/compare/v2.4.0-beta.2...v2.4.0-beta.3) (2026-05-01)
+
+### Bug Fixes
+
+* **mcp:** 删除 MCP 服务后接入点自动重连同步工具列表 ([#3512](https://github.com/shenjingnan/xiaozhi-client/issues/3512)) ([065f30c](https://github.com/shenjingnan/xiaozhi-client/commit/065f30cbc8568284e43722ba2079616f13fd9683))
+* **web:** 修复重启按钮 Loading 状态卡住不消失的问题 ([#3509](https://github.com/shenjingnan/xiaozhi-client/issues/3509)) ([25350d4](https://github.com/shenjingnan/xiaozhi-client/commit/25350d4f09aefaeb58d0947a1aceea2bff05e27f))
+* 修复 Web UI 重启服务后新进程无法启动的问题 ([#3508](https://github.com/shenjingnan/xiaozhi-client/issues/3508)) ([6e5dd0f](https://github.com/shenjingnan/xiaozhi-client/commit/6e5dd0febf6a67ebbfe885835c4d848f855e6a3b))
+
+### Code Refactoring
+
+* **web:** 移除冗余的 ClientStatusCard 组件 ([#3507](https://github.com/shenjingnan/xiaozhi-client/issues/3507)) ([cdf28f2](https://github.com/shenjingnan/xiaozhi-client/commit/cdf28f2cc9ad3c06dd9f81d7dfb837b3d00a1c5e))
+
 ## [2.4.0-beta.2](https://github.com/shenjingnan/xiaozhi-client/compare/v2.4.0-beta.1...v2.4.0-beta.2) (2026-04-29)
 
 ### Code Refactoring
