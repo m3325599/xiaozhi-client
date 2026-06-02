@@ -63,6 +63,11 @@ jobs:
       - name: 安装依赖
         run: pnpm install
 
+      - name: 修复 rolldown binding
+        run: |
+          npm install @rolldown/binding-linux-x64-gnu@1.0.0-rc.16 --force
+          echo "rolldown binding 已修复"
+
       # 使用 Nx 构建所有项目（确保依赖顺序正确）
       - name: 使用 Nx 构建项目
         run: pnpm run build
