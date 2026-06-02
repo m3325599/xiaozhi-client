@@ -61,11 +61,14 @@ jobs:
           echo "已清理 node_modules 和缓存"
 
       - name: 安装依赖
-        run: pnpm install
+        run: pnpm install --ignore-scripts=false
 
       - name: 修复 rolldown binding
         run: |
-          npm install @rolldown/binding-linux-x64-gnu@1.0.0-rc.16 --force
+          cd node_modules/.pnpm/rolldown@1.0.0-rc.16/node_modules/rolldown
+          pnpm add @rolldown/binding-linux-x64-gnu@1.0.0-rc.16
+          cd ../../../..
+          node node_modules/.pnpm/rolldown@1.0.0-rc.16/node_modules/rolldown/dist/cli.js --version || true
           echo "rolldown binding 已修复"
 
       # 使用 Nx 构建所有项目（确保依赖顺序正确）
