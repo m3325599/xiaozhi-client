@@ -52,16 +52,16 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version-file: ".nvmrc"
-          cache: "pnpm"
 
       - name: 清理可能损坏的依赖缓存
         run: |
           rm -rf node_modules
-          rm -f package-lock.json
-          echo "已清理 node_modules 和 package-lock.json"
+          rm -rf ~/.npm
+          rm -rf ~/.pnpm-store
+          echo "已清理 node_modules 和缓存"
 
       - name: 安装依赖
-        run: pnpm install --frozen-lockfile
+        run: pnpm install
 
       # 使用 Nx 构建所有项目（确保依赖顺序正确）
       - name: 使用 Nx 构建项目
