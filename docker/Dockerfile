@@ -50,8 +50,9 @@ RUN if [ -f /tmp/requirements.txt ] && [ -s /tmp/requirements.txt ]; then \
 # 复制构建好的 xiaozhi-client 代码
 COPY dist/ /app/xiaozhi-client/
 
-# 将 xiaozhi 命令添加到 PATH
-ENV PATH="/app/xiaozhi-client/cli:$PATH"
+# 创建 xiaozhi 命令的符号链接
+RUN ln -sf /app/xiaozhi-client/cli/index.js /usr/local/bin/xiaozhi && \
+    chmod +x /app/xiaozhi-client/cli/index.js
 
 # 验证工具可用性
 RUN npx --version && echo "✓ npx is available" \
