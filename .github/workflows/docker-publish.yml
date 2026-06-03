@@ -77,11 +77,6 @@ jobs:
         with:
           node-version-file: ".nvmrc"
 
-      - name: 配置 pnpm 使用国内镜像
-        run: |
-          pnpm config set registry https://registry.npmmirror.com
-          echo "已配置 pnpm 使用国内镜像源"
-
       - name: 清理可能损坏的依赖缓存
         run: |
           rm -rf node_modules
@@ -90,7 +85,13 @@ jobs:
           echo "已清理 node_modules 和缓存"
 
       - name: 安装依赖（包含 optional dependencies）
+        env:
+          NPM_CONFIG_REGISTRY: https://registry.npmmirror.com
         run: |
+          # 配置 pnpm 使用国内镜像
+          pnpm config set registry https://registry.npmmirror.com
+          echo "已配置 pnpm 使用国内镜像源"
+          
           # 重试机制：最多重试 3 次
           for i in 1 2 3; do
             echo "尝试安装依赖 (第 $i 次)..."
