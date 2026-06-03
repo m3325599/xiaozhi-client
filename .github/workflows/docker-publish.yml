@@ -77,6 +77,11 @@ jobs:
         with:
           node-version-file: ".nvmrc"
 
+      - name: 配置 pnpm 使用国内镜像
+        run: |
+          pnpm config set registry https://registry.npmmirror.com
+          echo "已配置 pnpm 使用国内镜像源"
+
       - name: 清理可能损坏的依赖缓存
         run: |
           rm -rf node_modules
@@ -85,7 +90,19 @@ jobs:
           echo "已清理 node_modules 和缓存"
 
       - name: 安装依赖（包含 optional dependencies）
-        run: pnpm install --optional
+        run: |
+          # 重试机制：最多重试 3 次
+          for i in 1 2 3; do
+            echo "尝试安装依赖 (第 $i 次)..."
+            if pnpm install --optional --frozen-lockfile; then
+              echo "✓ 依赖安装成功"
+              exit 0
+            fi
+            echo "✗ 第 $i 次尝试失败，等待 5 秒后重试..."
+            sleep 5
+          done
+          echo "✗ 依赖安装失败，已重试 3 次"
+          exit 1
 
       - name: 强制重新安装 rolldown binding
         run: |
