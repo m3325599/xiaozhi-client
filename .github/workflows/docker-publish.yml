@@ -20,6 +20,14 @@ on:
         required: false
         default: false
         type: boolean
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/docker-publish.yml'
+      - 'docker/**'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
 
 permissions:
   contents: write
@@ -28,20 +36,35 @@ jobs:
   docker-release:
     name: Docker 发布
     runs-on: ubuntu-latest
-    # 只有在手动触发时才运行
-    if: github.event_name == 'workflow_dispatch'
     steps:
+      - name: 设置变量（兼容两种触发方式）
+        id: vars
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "branch=${{ github.event.inputs.branch }}" >> $GITHUB_OUTPUT
+            echo "version=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
+            echo "force_latest=${{ github.event.inputs.force_latest }}" >> $GITHUB_OUTPUT
+          else
+            echo "branch=${{ github.ref_name }}" >> $GITHUB_OUTPUT
+            echo "version=" >> $GITHUB_OUTPUT
+            echo "force_latest=true" >> $GITHUB_OUTPUT
+          fi
+
       - name: 检出代码
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.inputs.branch }}
+          ref: ${{ steps.vars.outputs.branch }}
           fetch-depth: 0
 
       - name: 确认触发方式和分支
         run: |
-          echo "手动触发 Docker 发布，从分支 ${{ github.event.inputs.branch }} 发布"
-          echo "指定版本: ${{ github.event.inputs.version || '自动获取' }}"
-          echo "强制更新 latest: ${{ github.event.inputs.force_latest }}"
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "手动触发 Docker 发布，从分支 ${{ steps.vars.outputs.branch }} 发布"
+          else
+            echo "通过推送触发 Docker 发布，从分支 ${{ steps.vars.outputs.branch }} 发布"
+          fi
+          echo "指定版本: ${{ steps.vars.outputs.version || '自动获取' }}"
+          echo "强制更新 latest: ${{ steps.vars.outputs.force_latest }}"
 
       - name: 安装 pnpm
         uses: pnpm/action-setup@v4
@@ -81,9 +104,9 @@ jobs:
       - name: 获取版本号
         id: get_version
         run: |
-          if [ -n "${{ github.event.inputs.version }}" ]; then
+          if [ -n "${{ steps.vars.outputs.version }}" ]; then
             # 手动指定版本号
-            VERSION="${{ github.event.inputs.version }}"
+            VERSION="${{ steps.vars.outputs.version }}"
             echo "使用手动指定的版本号: $VERSION"
           else
             # 从 package.json 自动获取版本号
@@ -101,7 +124,7 @@ jobs:
       - name: 确定分支类型
         id: branch_info
         run: |
-          if [ "${{ github.event.inputs.branch }}" = "main" ]; then
+          if [ "${{ steps.vars.outputs.branch }}" = "main" ]; then
             echo "branch_type=stable" >> $GITHUB_OUTPUT
             echo "is_main_branch=true" >> $GITHUB_OUTPUT
             echo "分支类型: stable (main)"
@@ -128,7 +151,7 @@ jobs:
           VERSION_WITH_V="${{ steps.get_version.outputs.version_with_v }}"
           BRANCH_TYPE="${{ steps.branch_info.outputs.branch_type }}"
           IS_MAIN="${{ steps.branch_info.outputs.is_main_branch }}"
-          FORCE_LATEST="${{ github.event.inputs.force_latest }}"
+          FORCE_LATEST="${{ steps.vars.outputs.force_latest }}"
 
           # 基础标签：版本号（带 v 前缀）和分支类型
           TAGS="$USERNAME/xiaozhi-client:$VERSION_WITH_V,$USERNAME/xiaozhi-client:$BRANCH_TYPE"
