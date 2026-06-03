@@ -68,8 +68,8 @@ jobs:
           # 删除可能损坏的 rolldown binding
           rm -rf node_modules/.pnpm/@rolldown
           
-          # 重新安装 rolldown 及其 binding
-          pnpm add rolldown@1.0.0-rc.16 @rolldown/binding-linux-x64-gnu@1.0.0-rc.16
+          # 重新安装 rolldown 及其 binding（使用 -w 标志安装到工作区根目录）
+          pnpm add -w rolldown@1.0.0-rc.16 @rolldown/binding-linux-x64-gnu@1.0.0-rc.16
           
           # 验证安装
           node -e "try { require('rolldown'); console.log('✓ rolldown 加载成功'); } catch(e) { console.log('✗ rolldown 加载失败:', e.message); }"
