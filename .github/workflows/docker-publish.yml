@@ -142,7 +142,68 @@ jobs:
           echo "生成的 Docker 标签:"
           echo "$TAGS" | tr ',' '\n' | sed 's/^/  - /'
 
-      - name: 构建并推送 Docker 镜像
+      - name: 构建 Docker 镜像（不推送，先测试）
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./docker/Dockerfile
+          platforms: linux/amd64
+          push: false
+          load: true
+          tags: ${{ steps.docker_tags.outputs.tags }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: 测试 Docker 镜像
+        run: |
+          echo "📝 开始测试 Docker 镜像..."
+          
+          # 运行容器测试
+          CONTAINER_NAME="xiaozhi-test"
+          IMAGE_NAME="${{ secrets.DOCKER_USERNAME }}/xiaozhi-client:${{ steps.get_version.outputs.version_with_v }}"
+          
+          # 创建临时目录用于测试
+          mkdir -p /tmp/xiaozhi-test
+          
+          # 运行容器（后台模式）
+          echo "启动测试容器..."
+          docker run -d --name $CONTAINER_NAME \
+            -v /tmp/xiaozhi-test:/workspaces \
+            $IMAGE_NAME
+          
+          # 等待容器启动
+          sleep 10
+          
+          # 检查容器状态
+          echo "检查容器状态..."
+          CONTAINER_STATUS=$(docker inspect --format='{{.State.Status}}' $CONTAINER_NAME 2>/dev/null || echo "not_found")
+          echo "容器状态: $CONTAINER_STATUS"
+          
+          if [ "$CONTAINER_STATUS" != "running" ]; then
+            echo "❌ 容器启动失败，查看日志:"
+            docker logs $CONTAINER_NAME
+            docker rm -f $CONTAINER_NAME 2>/dev/null || true
+            exit 1
+          fi
+          
+          # 检查 xiaozhi 命令是否可用
+          echo "测试 xiaozhi 命令..."
+          docker exec $CONTAINER_NAME xiaozhi --version
+          
+          if [ $? -ne 0 ]; then
+            echo "❌ xiaozhi 命令测试失败"
+            docker logs $CONTAINER_NAME
+            docker rm -f $CONTAINER_NAME 2>/dev/null || true
+            exit 1
+          fi
+          
+          # 停止并删除测试容器
+          echo "✅ 测试通过！清理测试容器..."
+          docker rm -f $CONTAINER_NAME 2>/dev/null || true
+          
+          echo "📝 Docker 镜像测试完成"
+
+      - name: 构建并推送 Docker 镜像（正式推送）
         uses: docker/build-push-action@v5
         with:
           context: .
