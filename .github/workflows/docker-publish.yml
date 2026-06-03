@@ -95,12 +95,12 @@ jobs:
           # 重试机制：最多重试 3 次
           for i in 1 2 3; do
             echo "尝试安装依赖 (第 $i 次)..."
-            if pnpm install --optional --frozen-lockfile; then
+            if pnpm install --optional; then
               echo "✓ 依赖安装成功"
               exit 0
             fi
-            echo "✗ 第 $i 次尝试失败，等待 5 秒后重试..."
-            sleep 5
+            echo "✗ 第 $i 次尝试失败，等待 10 秒后重试..."
+            sleep 10
           done
           echo "✗ 依赖安装失败，已重试 3 次"
           exit 1
