@@ -172,16 +172,25 @@ jobs:
             $IMAGE_NAME
           
           # 等待容器启动
-          sleep 10
+          echo "等待容器启动..."
+          sleep 15
           
           # 检查容器状态
           echo "检查容器状态..."
           CONTAINER_STATUS=$(docker inspect --format='{{.State.Status}}' $CONTAINER_NAME 2>/dev/null || echo "not_found")
           echo "容器状态: $CONTAINER_STATUS"
           
+          # 查看容器日志（无论状态如何）
+          echo "=== 容器日志 ==="
+          docker logs $CONTAINER_NAME
+          echo "=== 容器日志结束 ==="
+          
           if [ "$CONTAINER_STATUS" != "running" ]; then
-            echo "❌ 容器启动失败，查看日志:"
-            docker logs $CONTAINER_NAME
+            echo "❌ 容器启动失败，容器状态: $CONTAINER_STATUS"
+            # 查看容器详细信息
+            echo "=== 容器详细信息 ==="
+            docker inspect $CONTAINER_NAME 2>/dev/null || true
+            echo "=== 容器详细信息结束 ==="
             docker rm -f $CONTAINER_NAME 2>/dev/null || true
             exit 1
           fi
