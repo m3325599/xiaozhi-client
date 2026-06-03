@@ -56,9 +56,9 @@ COPY package.json pnpm-lock.yaml /app/xiaozhi-client/
 # 复制构建好的 xiaozhi-client 代码
 COPY dist/ /app/xiaozhi-client/dist/
 
-# 设置工作目录并安装生产依赖
+# 设置工作目录并安装生产依赖（跳过 prepare 脚本以避免 husky 错误）
 WORKDIR /app/xiaozhi-client
-RUN pnpm install --prod --optional
+RUN pnpm install --prod --optional --ignore-scripts
 
 # 创建 xiaozhi 命令的符号链接
 RUN ln -sf /app/xiaozhi-client/dist/cli/index.js /usr/local/bin/xiaozhi && \
