@@ -122,28 +122,49 @@ if [ $# -eq 0 ] || [[ "$1" == -* ]]; then
     # 没有参数或第一个参数是选项，使用默认的 xiaozhi 命令
     # 注意：Dockerfile 已经使用 dumb-init 作为 ENTRYPOINT，这里不需要再调用
     xiaozhi "$@" &
-    XIAOZHI_PID=$!
     
     # 等待后台服务启动
-    sleep 5
+    log "等待 xiaozhi 服务启动..."
+    for i in {1..30}; do
+        if [ -f "/workspaces/.xiaozhi-client.pid" ]; then
+            PID=$(cat /workspaces/.xiaozhi-client.pid 2>/dev/null || echo "")
+            if [ -n "$PID" ] && kill -0 $PID 2>/dev/null; then
+                log "xiaozhi-client 已启动，PID: $PID"
+                break
+            fi
+        elif [ -f "/app/xiaozhi-client/.xiaozhi-client.pid" ]; then
+            PID=$(cat /app/xiaozhi-client/.xiaozhi-client.pid 2>/dev/null || echo "")
+            if [ -n "$PID" ] && kill -0 $PID 2>/dev/null; then
+                log "xiaozhi-client 已启动，PID: $PID"
+                break
+            fi
+        fi
+        sleep 1
+    done
     
-    # 检查服务是否启动成功
+    # 获取实际的 PID
+    SERVICE_PID=""
     if [ -f "/workspaces/.xiaozhi-client.pid" ]; then
-        PID=$(cat /workspaces/.xiaozhi-client.pid)
-        log "xiaozhi-client 已启动，PID: $PID"
+        SERVICE_PID=$(cat /workspaces/.xiaozhi-client.pid 2>/dev/null || echo "")
     elif [ -f "/app/xiaozhi-client/.xiaozhi-client.pid" ]; then
-        PID=$(cat /app/xiaozhi-client/.xiaozhi-client.pid)
-        log "xiaozhi-client 已启动，PID: $PID"
-    else
-        log "⚠️  未找到 PID 文件，继续等待..."
+        SERVICE_PID=$(cat /app/xiaozhi-client/.xiaozhi-client.pid 2>/dev/null || echo "")
     fi
     
-    # 保持容器运行，监控 xiaozhi 进程
-    log "容器正在运行，监控 xiaozhi 进程..."
-    while kill -0 $XIAOZHI_PID 2>/dev/null; do
+    if [ -z "$SERVICE_PID" ]; then
+        log "⚠️  未找到服务 PID，容器将保持运行但无法监控服务状态"
+    fi
+    
+    # 保持容器运行，监控实际的服务进程
+    log "容器正在运行，监控服务进程..."
+    while true; do
+        if [ -n "$SERVICE_PID" ]; then
+            if ! kill -0 $SERVICE_PID 2>/dev/null; then
+                log "服务进程已退出，容器将停止"
+                exit 1
+            fi
+        fi
         sleep 10
     done
-    log "xiaozhi 进程已退出，容器将停止"
 else
     # 有参数且第一个参数不是选项，直接执行
     exec "$@"
