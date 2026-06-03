@@ -91,7 +91,7 @@ RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
 
 # 暴露端口
-EXPOSE 9999 3000
+EXPOSE 9999 3333
 
 # 设置环境变量
 ENV NODE_ENV=production
