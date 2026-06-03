@@ -4,11 +4,6 @@
 
 FROM node:22
 
-# 定义 xiaozhi-client 版本号
-# 默认使用当前项目版本，可在构建时通过 --build-arg 覆盖
-# 例如: docker build --build-arg XIAOZHI_VERSION=1.6.0 .
-ARG XIAOZHI_VERSION=2.0.0
-
 # 配置 npm 和 pnpm 使用国内镜像源
 # 设置 npm 注册表镜像
 RUN npm config set registry https://registry.npmmirror.com
@@ -29,7 +24,7 @@ RUN apt-get update && apt-get install -y \
     ffmpeg \
     && rm -rf /var/lib/apt/lists/* \
     && ln -sf /usr/bin/python3 /usr/bin/python \
-    && npm install -g pnpm xiaozhi-client@${XIAOZHI_VERSION} \
+    && npm install -g pnpm \
     && pnpm config set registry https://registry.npmmirror.com
 
 # 创建 Python 虚拟环境
@@ -52,12 +47,19 @@ RUN if [ -f /tmp/requirements.txt ] && [ -s /tmp/requirements.txt ]; then \
     fi \
     && rm -f /tmp/requirements.txt*
 
+# 复制构建好的 xiaozhi-client 代码
+COPY dist/ /app/xiaozhi-client/
+
+# 将 xiaozhi 命令添加到 PATH
+ENV PATH="/app/xiaozhi-client/cli:$PATH"
+
 # 验证工具可用性
 RUN npx --version && echo "✓ npx is available" \
     && /opt/venv/bin/uv --version && echo "✓ uv is available" \
     && /opt/venv/bin/uvx --version && echo "✓ uvx is available" \
     && /opt/venv/bin/python --version && echo "✓ Python virtual environment is available" \
-    && ffmpeg -version > /dev/null 2>&1 && echo "✓ ffmpeg is available"
+    && ffmpeg -version > /dev/null 2>&1 && echo "✓ ffmpeg is available" \
+    && xiaozhi --version && echo "✓ xiaozhi-client is available"
 
 # 设置工作目录
 # 推荐挂载点: -v ~/xiaozhi-client:/workspaces
