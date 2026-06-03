@@ -122,6 +122,7 @@ if [ $# -eq 0 ] || [[ "$1" == -* ]]; then
     # 没有参数或第一个参数是选项，使用默认的 xiaozhi 命令
     # 注意：Dockerfile 已经使用 dumb-init 作为 ENTRYPOINT，这里不需要再调用
     xiaozhi "$@" &
+    XIAOZHI_PID=$!
     
     # 等待后台服务启动
     sleep 5
@@ -137,8 +138,12 @@ if [ $# -eq 0 ] || [[ "$1" == -* ]]; then
         log "⚠️  未找到 PID 文件，继续等待..."
     fi
     
-    # 保持容器运行（使用 tail -f /dev/null 防止容器退出）
-    tail -f /dev/null
+    # 保持容器运行，监控 xiaozhi 进程
+    log "容器正在运行，监控 xiaozhi 进程..."
+    while kill -0 $XIAOZHI_PID 2>/dev/null; do
+        sleep 10
+    done
+    log "xiaozhi 进程已退出，容器将停止"
 else
     # 有参数且第一个参数不是选项，直接执行
     exec "$@"
