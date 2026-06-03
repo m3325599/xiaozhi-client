@@ -14,6 +14,7 @@ async function importModules() {
     WebServer: webServerModule.WebServer,
     configManager: configModule.configManager,
     logger: loggerModule.logger,
+    setGlobalLogLevel: loggerModule.setGlobalLogLevel,
   };
 }
 
@@ -22,7 +23,12 @@ async function main() {
 
   try {
     // 动态导入模块
-    const { WebServer, configManager, logger } = await importModules();
+    const { WebServer, configManager, logger, setGlobalLogLevel } = await importModules();
+
+    // 如果设置了日志级别，应用它
+    if (process.env.XIAOZHI_LOG_LEVEL) {
+      setGlobalLogLevel(process.env.XIAOZHI_LOG_LEVEL as any);
+    }
 
     // 初始化日志
     if (process.env.XIAOZHI_CONFIG_DIR) {

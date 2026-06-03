@@ -611,7 +611,16 @@ export class Logger {
 
 // 全局Logger实例管理
 let globalLogger: Logger | null = null;
-let globalLogLevel: Level = "info"; // 全局日志级别
+// 优先从环境变量读取日志级别，默认 info
+const envLogLevel = process.env.XIAOZHI_LOG_LEVEL;
+let globalLogLevel: Level = "info";
+if (envLogLevel) {
+  const normalizedLevel = envLogLevel.toLowerCase();
+  const result = LogLevelSchema.safeParse(normalizedLevel);
+  if (result.success) {
+    globalLogLevel = result.data;
+  }
+}
 
 /**
  * 创建Logger实例

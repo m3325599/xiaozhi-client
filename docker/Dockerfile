@@ -98,6 +98,8 @@ ENV NODE_ENV=production
 ENV XIAOZHI_WORKSPACE=/workspaces
 ENV XIAOZHI_CONTAINER=true
 ENV XIAOZHI_CONFIG_DIR=/workspaces
+# 日志级别: trace, debug, info, warn, error, fatal (默认: info)
+ENV XIAOZHI_LOG_LEVEL=info
 
 # 健康检查 - 检查 xiaozhi 服务是否正常运行
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
