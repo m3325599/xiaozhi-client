@@ -272,6 +272,14 @@ export class ServiceManagerImpl implements IServiceManager {
     );
     consola.info("使用 'xiaozhi status' 查看状态");
 
+    // 在容器环境中，保持主进程运行以防止容器退出
+    if (process.env.XIAOZHI_CONTAINER === "true") {
+      // 无限循环保持进程运行
+      while (true) {
+        await new Promise((resolve) => setTimeout(resolve, 10000));
+      }
+    }
+
     // 立即退出父进程，释放终端控制权
     process.exit(0);
   }
@@ -317,6 +325,14 @@ export class ServiceManagerImpl implements IServiceManager {
     consola.success(`后台服务已启动 (PID: ${child.pid})`);
     consola.info("使用 'xiaozhi status' 查看状态");
     consola.info("使用 'xiaozhi attach' 查看日志");
+
+    // 在容器环境中，保持主进程运行以防止容器退出
+    if (process.env.XIAOZHI_CONTAINER === "true") {
+      // 无限循环保持进程运行
+      while (true) {
+        await new Promise((resolve) => setTimeout(resolve, 10000));
+      }
+    }
 
     // 立即退出父进程，释放终端控制权
     process.exit(0);
