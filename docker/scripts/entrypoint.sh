@@ -3,7 +3,7 @@ set -euo pipefail
 
 # 日志函数
 log() {
-    echo "[$(date '+%Y-%m-%d %H:%M:%S')] $*"
+  echo "[$(date '+%Y-%m-%d %H:%M:%S')] $*"
 }
 
 log "Xiaozhi Client Docker 容器启动中..."
@@ -13,77 +13,77 @@ log "检查工作目录初始化状态..."
 
 # 检查关键配置文件是否存在
 if [ ! -f "/workspaces/xiaozhi.config.json" ] || [ ! -f "/workspaces/package.json" ]; then
-    log "初始化工作目录..."
-    log "将模板文件复制到 ~/xiaozhi-client (挂载到 /workspaces)"
+  log "初始化工作目录..."
+  log "将模板文件复制到 ~/xiaozhi-client (挂载到 /workspaces)"
 
-    # 确保目录存在
-    mkdir -p /workspaces
+  # 确保目录存在
+  mkdir -p /workspaces
 
-    # 复制模板文件到工作目录
-    if ! cp -r /templates-backup/* /workspaces/; then
-        log "错误: 复制模板文件失败"
-        exit 1
-    fi
+  # 复制模板文件到工作目录
+  if ! cp -r /templates-backup/* /workspaces/; then
+    log "错误: 复制模板文件失败"
+    exit 1
+  fi
 
-    log "工作目录初始化完成"
-    log "配置文件位置: ~/xiaozhi-client/xiaozhi.config.json"
+  log "工作目录初始化完成"
+  log "配置文件位置: ~/xiaozhi-client/xiaozhi.config.json"
 else
-    log "工作目录已存在配置文件，跳过初始化"
+  log "工作目录已存在配置文件，跳过初始化"
 fi
 
 # 确保 Node.js 依赖已安装
 cd /workspaces
 if [ ! -d "node_modules" ]; then
-    log "安装 Node.js 项目依赖..."
-    if ! npm install; then
-        log "错误: Node.js 依赖安装失败"
-        exit 1
-    fi
-    log "Node.js 依赖安装完成"
+  log "安装 Node.js 项目依赖..."
+  if ! npm install; then
+    log "错误: Node.js 依赖安装失败"
+    exit 1
+  fi
+  log "Node.js 依赖安装完成"
 else
-    log "Node.js 依赖已存在，跳过安装"
+  log "Node.js 依赖已存在，跳过安装"
 fi
 
 # 动态安装 Python 依赖
 log "检查 Python 依赖..."
 install_python_dependencies() {
-    local requirements_file="$1"
-    local requirements_name="$2"
+  local requirements_file="$1"
+  local requirements_name="$2"
 
-    if [ -f "$requirements_file" ]; then
-        # 检查文件是否有非注释、非空行的内容
-        if grep -v '^#' "$requirements_file" | grep -v '^$' | head -1 > /dev/null 2>&1; then
-            log "发现 $requirements_name 文件，开始安装 Python 依赖..."
+  if [ -f "$requirements_file" ]; then
+    # 检查文件是否有非注释、非空行的内容
+    if grep -v '^#' "$requirements_file" | grep -v '^$' | head -1 > /dev/null 2>&1; then
+      log "发现 $requirements_name 文件，开始安装 Python 依赖..."
 
-            # 确保使用虚拟环境
-            export PATH="/opt/venv/bin:$PATH"
+      # 确保使用虚拟环境
+      export PATH="/opt/venv/bin:$PATH"
 
-            # 显示将要安装的包（仅非注释行）
-            log "将要安装的包："
-            grep -v '^#' "$requirements_file" | grep -v '^$' | while read -r line; do
-                log "  - $line"
-            done
+      # 显示将要安装的包（仅非注释行）
+      log "将要安装的包："
+      grep -v '^#' "$requirements_file" | grep -v '^$' | while read -r line; do
+        log "  - $line"
+      done
 
-            # 安装依赖
-            if pip install -r "$requirements_file"; then
-                log "✓ Python 依赖安装成功"
+      # 安装依赖
+      if pip install -r "$requirements_file"; then
+        log "✓ Python 依赖安装成功"
 
-                # 记录安装的包版本（用于调试）
-                log "已安装的 Python 包版本："
-                pip list | grep -E "(mcp|fastmcp|httpx|websockets|pydantic)" | while read -r line; do
-                    log "  $line"
-                done
-            else
-                log "⚠️  警告: Python 依赖安装失败，但容器将继续启动"
-                log "请检查 $requirements_name 文件中的包名和版本是否正确"
-                return 1
-            fi
-        else
-            log "$requirements_name 文件存在但为空或只包含注释，跳过安装"
-        fi
+        # 记录安装的包版本（用于调试）
+        log "已安装的 Python 包版本："
+        pip list | grep -E "(mcp|fastmcp|httpx|websockets|pydantic)" | while read -r line; do
+          log "  $line"
+        done
+      else
+        log "⚠️  警告: Python 依赖安装失败，但容器将继续启动"
+        log "请检查 $requirements_name 文件中的包名和版本是否正确"
+        return 1
+      fi
     else
-        log "$requirements_name 文件不存在，跳过 Python 依赖安装"
+      log "$requirements_name 文件存在但为空或只包含注释，跳过安装"
     fi
+  else
+    log "$requirements_name 文件不存在，跳过 Python 依赖安装"
+  fi
 }
 
 # 安装用户自定义的 Python 依赖（优先级更高）
@@ -91,81 +91,113 @@ install_python_dependencies "/workspaces/requirements.txt" "用户自定义 requ
 
 # 如果用户没有自定义 requirements.txt，则检查是否需要安装默认依赖
 if [ ! -f "/workspaces/requirements.txt" ]; then
-    log "未找到用户自定义 requirements.txt，检查是否需要安装默认 Python 依赖..."
+  log "未找到用户自定义 requirements.txt，检查是否需要安装默认依赖..."
 
-    # 检查是否已经安装了基本的 MCP 包
-    export PATH="/opt/venv/bin:$PATH"
-    if ! python -c "import mcp" 2>/dev/null; then
-        log "检测到 MCP 包未安装，将从模板安装默认依赖..."
-        if [ -f "/templates-backup/requirements.txt" ]; then
-            install_python_dependencies "/templates-backup/requirements.txt" "默认模板 requirements.txt"
-        fi
-    else
-        log "MCP 包已安装，跳过默认依赖安装"
+  # 检查是否已经安装了基本的 MCP 包
+  export PATH="/opt/venv/bin:$PATH"
+  if ! python -c "import mcp" 2>/dev/null; then
+    log "检测到 MCP 包未安装，将从模板安装默认依赖..."
+    if [ -f "/templates-backup/requirements.txt" ]; then
+      install_python_dependencies "/templates-backup/requirements.txt" "默认模板 requirements.txt"
     fi
+  else
+    log "MCP 包已安装，跳过默认依赖安装"
+  fi
 fi
 
 # 清理可能存在的旧 PID 文件（容器重启时）
 log "清理容器启动前的状态..."
 if [ -f "/workspaces/.xiaozhi-client.pid" ]; then
-    log "发现旧的 PID 文件，正在清理..."
-    rm -f "/workspaces/.xiaozhi-client.pid"
-    log "旧 PID 文件已清理"
+  log "发现旧的 PID 文件，正在清理..."
+  rm -f "/workspaces/.xiaozhi-client.pid"
+  log "旧 PID 文件已清理"
 fi
 
 # 清理其他可能的 PID 文件
 find /workspaces -name "*.pid" -type f -delete 2>/dev/null || true
 
+# 函数：检查服务是否正常运行
+check_service() {
+  local PID_FILE="$1"
+  if [ -f "$PID_FILE" ]; then
+    local PID=$(cat "$PID_FILE" 2>/dev/null || echo "")
+    if [ -n "$PID" ] && kill -0 "$PID" 2>/dev/null; then
+      return 0
+    fi
+  fi
+  return 1
+}
+
 log "启动 xiaozhi-client..."
 # 如果没有提供参数或者第一个参数是选项，则使用默认命令
 if [ $# -eq 0 ] || [[ "$1" == -* ]]; then
-    # 没有参数或第一个参数是选项，使用默认的 xiaozhi 命令
-    # 注意：Dockerfile 已经使用 dumb-init 作为 ENTRYPOINT，这里不需要再调用
-    xiaozhi "$@" &
-    
-    # 等待后台服务启动
-    log "等待 xiaozhi 服务启动..."
-    for i in {1..30}; do
-        if [ -f "/workspaces/.xiaozhi-client.pid" ]; then
-            PID=$(cat /workspaces/.xiaozhi-client.pid 2>/dev/null || echo "")
-            if [ -n "$PID" ] && kill -0 $PID 2>/dev/null; then
-                log "xiaozhi-client 已启动，PID: $PID"
-                break
-            fi
-        elif [ -f "/app/xiaozhi-client/.xiaozhi-client.pid" ]; then
-            PID=$(cat /app/xiaozhi-client/.xiaozhi-client.pid 2>/dev/null || echo "")
-            if [ -n "$PID" ] && kill -0 $PID 2>/dev/null; then
-                log "xiaozhi-client 已启动，PID: $PID"
-                break
-            fi
-        fi
-        sleep 1
-    done
-    
-    # 获取实际的 PID
-    SERVICE_PID=""
-    if [ -f "/workspaces/.xiaozhi-client.pid" ]; then
-        SERVICE_PID=$(cat /workspaces/.xiaozhi-client.pid 2>/dev/null || echo "")
-    elif [ -f "/app/xiaozhi-client/.xiaozhi-client.pid" ]; then
-        SERVICE_PID=$(cat /app/xiaozhi-client/.xiaozhi-client.pid 2>/dev/null || echo "")
+  # 没有参数或第一个参数是选项，使用默认的 xiaozhi start 命令
+  log "启动 xiaozhi 服务..."
+  
+  # 创建一个临时的 FIFO 来阻止父进程立即退出
+  TMP_FIFO=$(mktemp -u)
+  mkfifo "$TMP_FIFO"
+  
+  # 启动 xiaozhi 服务
+  xiaozhi start &
+  XIAOZHI_PID=$!
+  
+  # 等待后台服务启动
+  log "等待 xiaozhi 服务启动..."
+  SERVICE_PID=""
+  for i in {1..30}; do
+    if check_service "/workspaces/.xiaozhi-client.pid"; then
+      SERVICE_PID=$(cat "/workspaces/.xiaozhi-client.pid" 2>/dev/null || echo "")
+      log "xiaozhi-client 已启动，PID: $SERVICE_PID"
+      break
+    elif check_service "/app/xiaozhi-client/.xiaozhi-client.pid"; then
+      SERVICE_PID=$(cat "/app/xiaozhi-client/.xiaozhi-client.pid" 2>/dev/null || echo "")
+      log "xiaozhi-client 已启动，PID: $SERVICE_PID"
+      break
     fi
-    
-    if [ -z "$SERVICE_PID" ]; then
-        log "⚠️  未找到服务 PID，容器将保持运行但无法监控服务状态"
-    fi
-    
-    # 保持容器运行，监控实际的服务进程
-    log "容器正在运行，监控服务进程..."
+    sleep 1
+  done
+  
+  # 清理临时 FIFO
+  rm -f "$TMP_FIFO"
+  
+  # 如果没找到服务 PID，仍然保持容器运行
+  if [ -z "$SERVICE_PID" ]; then
+    log "⚠️  未找到服务 PID，容器将保持运行"
+    # 无限循环保持容器运行
     while true; do
-        if [ -n "$SERVICE_PID" ]; then
-            if ! kill -0 $SERVICE_PID 2>/dev/null; then
-                log "服务进程已退出，容器将停止"
-                exit 1
-            fi
-        fi
-        sleep 10
+      sleep 60
     done
+  else
+    # 监控服务进程
+    log "容器正在运行，监控服务进程 (PID: $SERVICE_PID)..."
+    while true; do
+      if ! check_service "/workspaces/.xiaozhi-client.pid" && ! check_service "/app/xiaozhi-client/.xiaozhi-client.pid"; then
+        log "⚠️  服务进程已退出，尝试重新启动..."
+        # 清理旧 PID 文件
+        rm -f "/workspaces/.xiaozhi-client.pid" "/app/xiaozhi-client/.xiaozhi-client.pid" 2>/dev/null || true
+        # 重新启动服务
+        xiaozhi start &
+        # 等待服务重新启动
+        sleep 5
+        # 重新获取 PID
+        for i in {1..30}; do
+          if check_service "/workspaces/.xiaozhi-client.pid"; then
+            SERVICE_PID=$(cat "/workspaces/.xiaozhi-client.pid" 2>/dev/null || echo "")
+            log "xiaozhi-client 已重新启动，PID: $SERVICE_PID"
+            break
+          elif check_service "/app/xiaozhi-client/.xiaozhi-client.pid"; then
+            SERVICE_PID=$(cat "/app/xiaozhi-client/.xiaozhi-client.pid" 2>/dev/null || echo "")
+            log "xiaozhi-client 已重新启动，PID: $SERVICE_PID"
+            break
+          fi
+          sleep 1
+        done
+      fi
+      sleep 10
+    done
+  fi
 else
-    # 有参数且第一个参数不是选项，直接执行
-    exec "$@"
+  # 有参数且第一个参数不是选项，直接执行
+  exec "$@"
 fi
