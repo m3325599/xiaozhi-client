@@ -121,7 +121,7 @@ log "启动 xiaozhi-client..."
 if [ $# -eq 0 ] || [[ "$1" == -* ]]; then
     # 没有参数或第一个参数是选项，使用默认的 xiaozhi 命令
     # 使用 dumb-init 来管理子进程
-    /usr/bin/dumb-init -- xiaozhi "$@"
+    /usr/bin/dumb-init -- xiaozhi "$@" &
     
     # 等待后台服务启动
     sleep 5
@@ -130,16 +130,15 @@ if [ $# -eq 0 ] || [[ "$1" == -* ]]; then
     if [ -f "/workspaces/.xiaozhi-client.pid" ]; then
         PID=$(cat /workspaces/.xiaozhi-client.pid)
         log "xiaozhi-client 已启动，PID: $PID"
-        
-        # 保持容器运行，等待后台服务
-        while kill -0 $PID 2>/dev/null; do
-            sleep 10
-        done
-        log "xiaozhi-client 进程已退出"
+    elif [ -f "/app/xiaozhi-client/.xiaozhi-client.pid" ]; then
+        PID=$(cat /app/xiaozhi-client/.xiaozhi-client.pid)
+        log "xiaozhi-client 已启动，PID: $PID"
     else
-        log "❌ 无法找到 xiaozhi-client PID 文件，服务可能启动失败"
-        exit 1
+        log "⚠️  未找到 PID 文件，继续等待..."
     fi
+    
+    # 保持容器运行（使用 tail -f /dev/null 防止容器退出）
+    tail -f /dev/null
 else
     # 有参数且第一个参数不是选项，直接执行
     exec /usr/bin/dumb-init -- "$@"
