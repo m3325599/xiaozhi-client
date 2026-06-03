@@ -28,6 +28,7 @@ on:
       - 'docker/**'
       - 'package.json'
       - 'pnpm-lock.yaml'
+      - 'src/**'
 
 permissions:
   contents: write
