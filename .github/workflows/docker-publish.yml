@@ -60,21 +60,17 @@ jobs:
           rm -rf ~/.pnpm-store
           echo "已清理 node_modules 和缓存"
 
-      - name: 安装依赖
-        run: pnpm install --ignore-scripts=false
+      - name: 安装依赖（包含 optional dependencies）
+        run: pnpm install --include-optional
 
-      - name: 修复 rolldown binding
+      - name: 强制重新安装 rolldown binding
         run: |
-          ROLLDOWN_DIR=$(find node_modules/.pnpm -name "rolldown" -type d | grep "@1.0.0-rc.16" | head -1)
-          echo "找到 rolldown 目录: $ROLLDOWN_DIR"
+          # 删除可能损坏的 rolldown binding
+          rm -rf node_modules/.pnpm/@rolldown
           
-          if [ -n "$ROLLDOWN_DIR" ]; then
-            cd "$ROLLDOWN_DIR"
-            pnpm add @rolldown/binding-linux-x64-gnu@1.0.0-rc.16 --shamefully-hoist
-            ls -la node_modules/@rolldown/ 2>/dev/null || echo "binding 目录检查"
-          fi
+          # 重新安装 rolldown 及其 binding
+          pnpm add rolldown@1.0.0-rc.16 @rolldown/binding-linux-x64-gnu@1.0.0-rc.16
           
-          cd "$GITHUB_WORKSPACE"
           # 验证安装
           node -e "try { require('rolldown'); console.log('✓ rolldown 加载成功'); } catch(e) { console.log('✗ rolldown 加载失败:', e.message); }"
 
