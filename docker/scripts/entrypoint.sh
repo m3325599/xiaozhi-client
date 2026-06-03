@@ -120,8 +120,8 @@ log "启动 xiaozhi-client..."
 # 如果没有提供参数或者第一个参数是选项，则使用默认命令
 if [ $# -eq 0 ] || [[ "$1" == -* ]]; then
     # 没有参数或第一个参数是选项，使用默认的 xiaozhi 命令
-    # 使用 dumb-init 来管理子进程
-    /usr/bin/dumb-init -- xiaozhi "$@" &
+    # 注意：Dockerfile 已经使用 dumb-init 作为 ENTRYPOINT，这里不需要再调用
+    xiaozhi "$@" &
     
     # 等待后台服务启动
     sleep 5
@@ -141,5 +141,5 @@ if [ $# -eq 0 ] || [[ "$1" == -* ]]; then
     tail -f /dev/null
 else
     # 有参数且第一个参数不是选项，直接执行
-    exec /usr/bin/dumb-init -- "$@"
+    exec "$@"
 fi
