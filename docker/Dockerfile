@@ -47,12 +47,22 @@ RUN if [ -f /tmp/requirements.txt ] && [ -s /tmp/requirements.txt ]; then \
     fi \
     && rm -f /tmp/requirements.txt*
 
+# 创建应用目录
+RUN mkdir -p /app/xiaozhi-client
+
+# 复制 package.json 和 pnpm-lock.yaml
+COPY package.json pnpm-lock.yaml /app/xiaozhi-client/
+
 # 复制构建好的 xiaozhi-client 代码
-COPY dist/ /app/xiaozhi-client/
+COPY dist/ /app/xiaozhi-client/dist/
+
+# 设置工作目录并安装生产依赖
+WORKDIR /app/xiaozhi-client
+RUN pnpm install --prod --optional
 
 # 创建 xiaozhi 命令的符号链接
-RUN ln -sf /app/xiaozhi-client/cli/index.js /usr/local/bin/xiaozhi && \
-    chmod +x /app/xiaozhi-client/cli/index.js
+RUN ln -sf /app/xiaozhi-client/dist/cli/index.js /usr/local/bin/xiaozhi && \
+    chmod +x /app/xiaozhi-client/dist/cli/index.js
 
 # 验证工具可用性
 RUN npx --version && echo "✓ npx is available" \
