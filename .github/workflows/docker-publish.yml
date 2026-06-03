@@ -96,24 +96,35 @@ jobs:
           pnpm --version
           pnpm config list
           
+          # 第一步：安装基础依赖（不包含 optional）
+          echo "========================================"
+          echo "步骤 1: 安装基础依赖..."
+          echo "========================================"
+          if ! pnpm install --ignore-scripts=false; then
+            echo "✗ 基础依赖安装失败"
+            exit 1
+          fi
+          echo "✓ 基础依赖安装成功"
+          
+          # 第二步：安装 optional dependencies
+          echo "========================================"
+          echo "步骤 2: 安装 optional dependencies..."
+          echo "========================================"
           # 重试机制：最多重试 3 次
           for i in 1 2 3; do
-            echo "========================================"
-            echo "尝试安装依赖 (第 $i 次)..."
-            echo "========================================"
-            # 使用 --ignore-scripts=false 确保构建脚本运行
-            if pnpm install --optional --ignore-scripts=false 2>&1 | tee /tmp/pnpm_install.log; then
-              echo "✓ 依赖安装成功"
+            echo "尝试安装 optional dependencies (第 $i 次)..."
+            if pnpm install --optional --ignore-scripts=false 2>&1 | tee /tmp/pnpm_optional.log; then
+              echo "✓ Optional dependencies 安装成功"
               exit 0
             else
               echo "✗ 第 $i 次尝试失败"
               echo "最后 50 行日志:"
-              tail -n 50 /tmp/pnpm_install.log
+              tail -n 50 /tmp/pnpm_optional.log
               echo "等待 10 秒后重试..."
               sleep 10
             fi
           done
-          echo "✗ 依赖安装失败，已重试 3 次"
+          echo "✗ Optional dependencies 安装失败，已重试 3 次"
           exit 1
 
       - name: 强制重新安装 rolldown binding
