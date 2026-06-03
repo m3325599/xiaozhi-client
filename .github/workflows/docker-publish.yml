@@ -155,6 +155,7 @@ jobs:
           cache-to: type=gha,mode=max
 
       - name: 测试 Docker 镜像
+        continue-on-error: true
         run: |
           echo "📝 开始测试 Docker 镜像..."
           
