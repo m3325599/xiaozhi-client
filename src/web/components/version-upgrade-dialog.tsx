@@ -66,27 +66,33 @@ export function VersionUpgradeDialog({
   const fetchAvailableVersions = useCallback(
     async (type: VersionType) => {
       try {
+        console.log(`[VersionUpgradeDialog] 开始获取 ${type} 版本列表...`);
         setIsLoadingVersions(true);
         const response = await apiClient.getAvailableVersions(type);
+        console.log(`[VersionUpgradeDialog] API 返回:`, response);
+        
         const versions = response.versions.map((version) => ({
           value: version,
           label: `v${version}`,
         }));
+        
         setAvailableVersions(versions);
         console.log(
           `[VersionUpgradeDialog] 获取到 ${response.total} 个${type}版本`
         );
+        
+        // 如果默认版本在当前列表中，则选中它
         if (
           defaultSelectedVersion &&
-          response.versions.includes(defaultSelectedVersion || "")
+          response.versions.includes(defaultSelectedVersion)
         ) {
-          setSelectedVersion(defaultSelectedVersion || "");
+          console.log(`[VersionUpgradeDialog] 自动选中默认版本: ${defaultSelectedVersion}`);
+          setSelectedVersion(defaultSelectedVersion);
         }
       } catch (error) {
         console.error("[VersionUpgradeDialog] 获取版本列表失败:", error);
-        // 如果获取失败，使用默认版本列表
-        const defaultVersions = [] as { value: string; label: string }[];
-        setAvailableVersions(defaultVersions);
+        // 如果获取失败，使用空列表
+        setAvailableVersions([]);
       } finally {
         setIsLoadingVersions(false);
       }
@@ -94,12 +100,13 @@ export function VersionUpgradeDialog({
     [defaultSelectedVersion]
   );
 
-  // 当对话框打开时获取版本列表
+  // 当对话框打开或版本类型改变时获取版本列表
   useEffect(() => {
     if (isOpen) {
+      console.log(`[VersionUpgradeDialog] 触发获取版本列表, type=${selectedVersionType}`);
       fetchAvailableVersions(selectedVersionType);
     }
-  }, [isOpen, selectedVersionType, fetchAvailableVersions]);
+  }, [isOpen, selectedVersionType]);
 
   // 处理版本类型选择
   const handleVersionTypeSelect = (value: VersionType) => {

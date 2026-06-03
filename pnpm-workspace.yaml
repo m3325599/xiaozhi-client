@@ -3,5 +3,11 @@ packages:
   - mcps/*
   - docs
 
+allowBuilds:
+  '@biomejs/biome': true
+  '@discordjs/opus': set this to true or false
+  esbuild: true
+  sharp: true
+
 onlyBuiltDependencies:
   - "@discordjs/opus"

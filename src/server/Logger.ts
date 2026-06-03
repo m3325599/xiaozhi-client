@@ -638,6 +638,10 @@ export function createLogger(level?: Level): Logger {
 export function getLogger(): Logger {
   if (!globalLogger) {
     globalLogger = new Logger(globalLogLevel); // 使用全局级别
+    // 输出日志级别信息（只在控制台模式下）
+    if (process.env.XIAOZHI_DAEMON !== "true") {
+      console.log(`[Logger] 日志级别: ${globalLogLevel} (来自 XIAOZHI_LOG_LEVEL 环境变量)`);
+    }
   }
   return globalLogger;
 }

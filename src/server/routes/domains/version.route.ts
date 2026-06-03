@@ -32,4 +32,9 @@ export const versionRoutes: RouteDefinition[] = [
     path: "/api/version/latest",
     handler: h((handler, c) => handler.checkLatestVersion(c)),
   },
+  {
+    method: "GET",
+    path: "/api/version/available",
+    handler: h((handler, c) => handler.getAvailableVersions(c)),
+  },
 ];
