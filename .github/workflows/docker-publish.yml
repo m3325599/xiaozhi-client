@@ -61,7 +61,7 @@ jobs:
           echo "已清理 node_modules 和缓存"
 
       - name: 安装依赖（包含 optional dependencies）
-        run: pnpm install --include-optional
+        run: pnpm install --optional
 
       - name: 强制重新安装 rolldown binding
         run: |
