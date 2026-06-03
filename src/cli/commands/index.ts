@@ -175,7 +175,7 @@ export class CommandRegistry implements ICommandRegistry {
   xiaozhi config init               # 初始化配置文件
   xiaozhi start                    # 启动服务（包含 Web UI）
   xiaozhi start -d                 # 后台启动服务
-  xiaozhi start -s 3000            # 以 MCP Server 模式启动
+  xiaozhi start -s 3333            # 以 MCP Server 模式启动
   xiaozhi stop                     # 停止服务
   xiaozhi status                   # 检查服务状态
   xiaozhi restart -d               # 重启服务（后台模式）
@@ -234,7 +234,7 @@ export class CommandRegistry implements ICommandRegistry {
   //     .description('启动服务')
   //     .option('-d, --daemon', '在后台运行服务')
   //     .option('-u, --ui', '同时启动 Web UI 服务')
-  //     .option('-s, --server [port]', '以 MCP Server 模式启动 (可选指定端口，默认 3000)')
+  //     .option('-s, --server [port]', '以 MCP Server 模式启动 (可选指定端口，默认 3333)')
   //     .option('--stdio', '以 stdio 模式运行 MCP Server (用于 Cursor 等客户端)')
   //     .action(async (options) => {
   //       await serviceCommand.start(options);

@@ -240,7 +240,7 @@ export class ServiceManagerImpl implements IServiceManager {
   private async startMcpServerMode(
     options: ServiceStartOptions
   ): Promise<void> {
-    const port = options.port || 3000;
+    const port = options.port || 3333;
     const { spawn } = await import("node:child_process");
 
     // 始终以守护进程方式启动
