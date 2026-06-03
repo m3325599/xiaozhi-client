@@ -65,11 +65,18 @@ jobs:
 
       - name: 修复 rolldown binding
         run: |
-          cd node_modules/.pnpm/rolldown@1.0.0-rc.16/node_modules/rolldown
-          pnpm add @rolldown/binding-linux-x64-gnu@1.0.0-rc.16
-          cd ../../../..
-          node node_modules/.pnpm/rolldown@1.0.0-rc.16/node_modules/rolldown/dist/cli.js --version || true
-          echo "rolldown binding 已修复"
+          ROLLDOWN_DIR=$(find node_modules/.pnpm -name "rolldown" -type d | grep "@1.0.0-rc.16" | head -1)
+          echo "找到 rolldown 目录: $ROLLDOWN_DIR"
+          
+          if [ -n "$ROLLDOWN_DIR" ]; then
+            cd "$ROLLDOWN_DIR"
+            pnpm add @rolldown/binding-linux-x64-gnu@1.0.0-rc.16 --shamefully-hoist
+            ls -la node_modules/@rolldown/ 2>/dev/null || echo "binding 目录检查"
+          fi
+          
+          cd "$GITHUB_WORKSPACE"
+          # 验证安装
+          node -e "try { require('rolldown'); console.log('✓ rolldown 加载成功'); } catch(e) { console.log('✗ rolldown 加载失败:', e.message); }"
 
       # 使用 Nx 构建所有项目（确保依赖顺序正确）
       - name: 使用 Nx 构建项目
