@@ -107,4 +107,4 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
 ENTRYPOINT ["dumb-init", "--", "/usr/local/bin/docker-entrypoint.sh"]
 
 # 默认命令 - 启动 xiaozhi-client
-CMD ["xiaozhi", "start"]
+CMD ["xiaozhi"]
