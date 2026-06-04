@@ -47,6 +47,11 @@ export class StaticFileHandler extends BaseHandler {
         // 生产环境：从 dist/ 查找 dist/frontend/
         join(__dirname, "..", "frontend"),
 
+        // Docker 容器环境：从 /app/xiaozhi-client/dist/backend/handlers/ 查找 /app/xiaozhi-client/dist/frontend/
+        join("/app/xiaozhi-client/dist", "frontend"),
+        // Docker 容器环境：从 /app/xiaozhi-client/dist/backend/ 查找 /app/xiaozhi-client/dist/frontend/
+        join("/app/xiaozhi-client", "dist", "frontend"),
+
         // 开发模式：从源码目录查找 src/web/
         join(__dirname, "..", "..", "..", "src", "web"),
         join(__dirname, "..", "..", "src", "web"),
