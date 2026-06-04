@@ -100,10 +100,10 @@ jobs:
           echo "========================================"
           echo "批准构建脚本..."
           echo "========================================"
-          pnpm config set allowBuilds."@discordjs/opus" true
-          pnpm config set allowBuilds."@biomejs/biome" true
-          pnpm config set allowBuilds."esbuild" true
-          pnpm config set allowBuilds."sharp" true
+          pnpm config set 'allowBuilds["@discordjs/opus"]' true
+          pnpm config set 'allowBuilds["@biomejs/biome"]' true
+          pnpm config set 'allowBuilds["esbuild"]' true
+          pnpm config set 'allowBuilds["sharp"]' true
           echo "已批准所有构建脚本"
           
           # 第一步：安装基础依赖（不包含 optional）
