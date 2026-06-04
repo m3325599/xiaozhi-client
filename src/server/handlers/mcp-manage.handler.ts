@@ -658,6 +658,84 @@ export class MCPHandler {
   }
 
   /**
+   * 重启单个 MCP 服务
+   * POST /api/mcp-servers/:serverName/restart
+   */
+  async restartMCPServer(c: Context<AppContext>): Promise<Response> {
+    try {
+      // 1. 从路径参数获取服务名称
+      const serverName = c.req.param("serverName");
+
+      // 验证参数存在性
+      if (!serverName) {
+        return c.fail(
+          MCPErrorCode.INVALID_SERVICE_NAME,
+          "服务名称不能为空",
+          {},
+          400
+        );
+      }
+
+      // 2. 验证服务名称
+      const nameValidation =
+        MCPServerConfigValidator.validateServiceName(serverName);
+      if (!nameValidation.isValid) {
+        return c.fail(
+          MCPErrorCode.INVALID_SERVICE_NAME,
+          nameValidation.errors.join(", "),
+          { serverName },
+          400
+        );
+      }
+
+      // 3. 检查服务是否存在
+      if (
+        !MCPServerConfigValidator.checkServiceExists(
+          serverName,
+          this.configManager
+        )
+      ) {
+        return c.fail(
+          MCPErrorCode.SERVER_NOT_FOUND,
+          "MCP 服务不存在",
+          { serverName },
+          404
+        );
+      }
+
+      this.logger.info(`[MCP] 正在重启服务: ${serverName}`);
+
+      // 4. 停止服务
+      try {
+        await this.mcpServiceManager.stopService(serverName);
+        this.logger.info(`[MCP] 服务 ${serverName} 已停止`);
+      } catch (error) {
+        this.logger.warn(`[MCP] 停止服务 ${serverName} 时出错:`, error);
+        // 继续尝试启动，即使停止失败
+      }
+
+      // 5. 启动服务
+      await this.mcpServiceManager.startService(serverName);
+      this.logger.info(`[MCP] 服务 ${serverName} 启动成功`);
+
+      // 6. 获取服务状态
+      const serviceStatus = this.getServiceStatus(serverName);
+
+      // 7. 返回成功响应
+      return c.success(serviceStatus, `MCP 服务 "${serverName}" 重启成功`);
+    } catch (error) {
+      this.logger.error(`[MCP] 重启服务失败:`, error);
+
+      return c.fail(
+        MCPErrorCode.INTERNAL_ERROR,
+        `重启 MCP 服务 "${c.req.param("serverName")}" 失败`,
+        { error: error instanceof Error ? error.message : String(error) },
+        500
+      );
+    }
+  }
+
+  /**
    * 获取 MCP 服务状态
    * GET /api/mcp-servers/:serverName/status
    */

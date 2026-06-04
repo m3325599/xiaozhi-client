@@ -10,6 +10,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { apiClient } from "@/services/api";
 import { useServerSearch } from "@/hooks/useServerSearch";
 import { useServerSortPersistence } from "@/hooks/useServerSortPersistence";
 import { useToolPagination } from "@/hooks/useToolPagination";
@@ -93,22 +94,25 @@ const COMMUNICATION_TYPE_LABELS: Record<
 
 /**
  * 刷新服务器按钮组件
- * 点击后重新获取服务器状态和工具信息
+ * 点击后重新连接指定的 MCP 服务器并获取状态
  */
 interface RefreshServerButtonProps {
   serverName: string;
-  onRefresh: () => Promise<void>;
 }
 
-function RefreshServerButton({ serverName, onRefresh }: RefreshServerButtonProps) {
+function RefreshServerButton({ serverName }: RefreshServerButtonProps) {
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const { servers, loading, refresh } = useMcpServersWithStatus();
 
   const handleClick = useCallback(async () => {
-    if (isRefreshing) return;
+    if (isRefreshing || loading) return;
 
     setIsRefreshing(true);
     try {
-      await onRefresh();
+      // 调用重启单个服务器的 API
+      await apiClient.restartMCPServer(serverName);
+      // 刷新服务器列表以更新状态
+      await refresh();
       toast.success(`MCP 服务 "${serverName}" 刷新成功`);
     } catch (error) {
       const errorMessage =
@@ -117,15 +121,15 @@ function RefreshServerButton({ serverName, onRefresh }: RefreshServerButtonProps
     } finally {
       setIsRefreshing(false);
     }
-  }, [serverName, onRefresh, isRefreshing]);
+  }, [serverName, isRefreshing, loading, refresh]);
 
   return (
     <button
       type="button"
       onClick={handleClick}
-      disabled={isRefreshing}
+      disabled={isRefreshing || loading}
       className="flex items-center gap-1 hover:cursor-pointer hover:text-primary transition-all duration-100 disabled:opacity-50 disabled:cursor-not-allowed"
-      title={`刷新 ${serverName} 服务状态`}
+      title={`重新连接 ${serverName} 服务`}
     >
       <RefreshCwIcon size={14} className={isRefreshing ? "animate-spin" : ""} />
       <span>{isRefreshing ? "刷新中..." : "刷新"}</span>

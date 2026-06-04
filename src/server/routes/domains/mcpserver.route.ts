@@ -48,6 +48,12 @@ export const mcpserverRoutes: RouteDefinition[] = [
       withMCPServerHandler(c, (h) => h.getMCPServerStatus(c)),
   },
   {
+    method: "POST",
+    path: "/api/mcp-servers/:serverName/restart",
+    handler: (c: Context) =>
+      withMCPServerHandler(c, (h) => h.restartMCPServer(c)),
+  },
+  {
     method: "GET",
     path: "/api/mcp-servers",
     handler: (c: Context) =>
