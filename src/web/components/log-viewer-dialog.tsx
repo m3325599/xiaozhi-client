@@ -146,26 +146,30 @@ export function LogViewerDialog({
     }
   }, [isOpen, fetchLogs]);
 
-  // 自动滚动到底部
+  // 自动滚动到顶部（最新日志）
   useEffect(() => {
     if (logData && logContainerRef.current) {
       const timer = setTimeout(() => {
         if (logContainerRef.current) {
-          logContainerRef.current.scrollTop =
-            logContainerRef.current.scrollHeight;
+          logContainerRef.current.scrollTop = 0;
         }
       }, 100);
       return () => clearTimeout(timer);
     }
   }, [logData]);
 
-  // 过滤日志内容
+  // 过滤日志内容（最新日志显示在顶部）
   const filteredContent = useCallback(() => {
     if (!logData?.content) return "";
-    if (!searchTerm.trim()) return logData.content;
 
-    const lines = logData.content.split("\n");
-    const filteredLines = lines.filter((line) =>
+    const lines = logData.content.split("\n").filter((line) => line.trim());
+    
+    // 倒序排列，让最新日志显示在顶部
+    const reversedLines = lines.reverse();
+    
+    if (!searchTerm.trim()) return reversedLines.join("\n");
+
+    const filteredLines = reversedLines.filter((line) =>
       line.toLowerCase().includes(searchTerm.toLowerCase())
     );
     return filteredLines.join("\n");
