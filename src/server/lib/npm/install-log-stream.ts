@@ -68,11 +68,14 @@ export class InstallLogStream {
 
   /**
    * 开始一个新的安装会话
+   * 如果会话已存在（例如 Handler 层已预创建），保留原有的控制器集合
    */
   startInstall(data: InstallStartedData): void {
+    const existingSession = this.sessions.get(data.installId);
+    
     this.sessions.set(data.installId, {
       logs: [],
-      controllers: new Set(),
+      controllers: existingSession?.controllers ?? new Set(),
       done: false,
     });
   }

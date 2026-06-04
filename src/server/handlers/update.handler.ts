@@ -88,6 +88,14 @@ export class UpdateApiHandler extends BaseHandler {
       const installId = `install-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
       this.activeInstalls.set(installId, true);
 
+      // 关键：在返回 installId 之前，先初始化日志流会话
+      // 确保前端连接 SSE 时会话已存在，避免 404 错误
+      this.logStream.startInstall({
+        version,
+        installId,
+        timestamp: Date.now(),
+      });
+
       // 异步启动安装（不阻塞响应）
       this.npmManager
         .installVersion(version, installId)
