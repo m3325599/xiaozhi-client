@@ -68,6 +68,7 @@ export class NPMManager {
       "-g",
       `xiaozhi-client@${version}`,
       "--registry=https://registry.npmmirror.com",
+      "--force",
     ]);
 
     /**
