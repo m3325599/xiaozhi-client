@@ -15,8 +15,8 @@ import { useServerSortPersistence } from "@/hooks/useServerSortPersistence";
 import { useToolPagination } from "@/hooks/useToolPagination";
 import { cn } from "@/lib/utils";
 import { useMcpServersWithStatus } from "@/stores/config";
-import { CoffeeIcon } from "lucide-react";
-import { useCallback, useEffect, useMemo } from "react";
+import { CoffeeIcon, RefreshCwIcon } from "lucide-react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import type { MCPServerConfig } from "../../../types";
 import { McpServerSettingButton } from "../mcp-server-setting-button";
@@ -90,6 +90,48 @@ const COMMUNICATION_TYPE_LABELS: Record<
   sse: "sse",
   "streamable-http": "http",
 };
+
+/**
+ * 刷新服务器按钮组件
+ * 点击后重新获取服务器状态和工具信息
+ */
+interface RefreshServerButtonProps {
+  serverName: string;
+  onRefresh: () => Promise<void>;
+}
+
+function RefreshServerButton({ serverName, onRefresh }: RefreshServerButtonProps) {
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const handleClick = useCallback(async () => {
+    if (isRefreshing) return;
+
+    setIsRefreshing(true);
+    try {
+      await onRefresh();
+      toast.success(`MCP 服务 "${serverName}" 刷新成功`);
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : "刷新失败";
+      toast.error(`刷新 MCP 服务 "${serverName}" 失败: ${errorMessage}`);
+    } finally {
+      setIsRefreshing(false);
+    }
+  }, [serverName, onRefresh, isRefreshing]);
+
+  return (
+    <button
+      type="button"
+      onClick={handleClick}
+      disabled={isRefreshing}
+      className="flex items-center gap-1 hover:cursor-pointer hover:text-primary transition-all duration-100 disabled:opacity-50 disabled:cursor-not-allowed"
+      title={`刷新 ${serverName} 服务状态`}
+    >
+      <RefreshCwIcon size={14} className={isRefreshing ? "animate-spin" : ""} />
+      <span>{isRefreshing ? "刷新中..." : "刷新"}</span>
+    </button>
+  );
+}
 
 /**
  * MCP 服务器表格组件
@@ -245,6 +287,10 @@ export function McpServerTable({ className }: McpServerTableProps) {
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center justify-end gap-2">
+                        <RefreshServerButton
+                          serverName={server.name}
+                          onRefresh={handleRefresh}
+                        />
                         <McpServerSettingButton
                           mcpServerName={server.name}
                           mcpServer={server.config}
