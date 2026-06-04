@@ -9,6 +9,7 @@ import type {
   CozeHandler,
   ESP32Handler,
   EndpointHandler,
+  LogHandler,
   MCPHandler,
   MCPRouteHandler,
   MCPToolHandler,
@@ -54,6 +55,8 @@ export interface HandlerDependencies {
   endpointHandler?: EndpointHandler;
   /** ESP32 设备处理器（可选） */
   esp32Handler?: ESP32Handler;
+  /** 日志查看处理器（可选） */
+  logHandler?: LogHandler;
 }
 
 /**

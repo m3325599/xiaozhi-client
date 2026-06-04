@@ -20,6 +20,7 @@ export { endpointRoutes } from "./endpoint.route.js";
 export { miscRoutes } from "./misc.route.js";
 export { ttsRoutes } from "./tts.route.js";
 export { esp32Routes } from "./esp32.route.js";
+export { logRoutes } from "./log.route.js";
 
 /**
  * 路由域名列表
@@ -40,6 +41,7 @@ export const routeNames = [
   "misc",
   "tts",
   "esp32",
+  "log",
 ] as const;
 
 /**

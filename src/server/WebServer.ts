@@ -41,6 +41,7 @@ import {
   ConfigApiHandler,
   CozeHandler,
   ESP32Handler,
+  LogHandler,
   MCPHandler,
   MCPRouteHandler,
   MCPToolHandler,
@@ -85,6 +86,7 @@ import {
   cozeRoutes,
   endpointRoutes,
   esp32Routes,
+  logRoutes,
   mcpRoutes,
   mcpserverRoutes,
   miscRoutes,
@@ -149,6 +151,7 @@ export class WebServer {
   private cozeHandler: CozeHandler;
   private ttsApiHandler: TTSApiHandler;
   private esp32Handler: ESP32Handler;
+  private logHandler: LogHandler;
 
   // 路由系统
   private routeManager?: RouteManager;
@@ -204,6 +207,7 @@ export class WebServer {
     this.cozeHandler = new CozeHandler();
     this.ttsApiHandler = new TTSApiHandler();
     this.esp32Handler = new ESP32Handler(this.esp32Manager);
+    this.logHandler = new LogHandler();
 
     // MCPServerApiHandler 将在 start() 方法中初始化，因为它需要 mcpServiceManager
 
@@ -580,6 +584,7 @@ export class WebServer {
       cozeHandler: this.cozeHandler,
       ttsApiHandler: this.ttsApiHandler,
       esp32Handler: this.esp32Handler,
+      logHandler: this.logHandler,
       // endpointHandler 通过中间件动态注入，不在此初始化
     };
   }
@@ -617,6 +622,7 @@ export class WebServer {
         misc: miscRoutes,
         tts: ttsRoutes,
         esp32: esp32Routes,
+        log: logRoutes,
         static: staticRoutes, // 放在最后作为回退
       });
 
