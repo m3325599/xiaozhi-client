@@ -143,7 +143,7 @@ const LogLevelSchema = z.enum([
 type Level = z.infer<typeof LogLevelSchema>;
 
 /**
- * 格式化日期时间为 YYYY-MM-DD HH:mm:ss 格式
+ * 格式化日期时间为 YYYY-MM-DD HH:mm:ss 格式（北京时间）
  * @param date 要格式化的日期对象
  * @returns 格式化后的日期时间字符串
  */
@@ -151,9 +151,18 @@ function formatDateTime(date: Date): string {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, "0");
   const day = String(date.getDate()).padStart(2, "0");
-  const hours = String(date.getHours()).padStart(2, "0");
-  const minutes = String(date.getMinutes()).padStart(2, "0");
-  const seconds = String(date.getSeconds()).padStart(2, "0");
+  // 使用 toLocaleString 获取北京时间
+  const formatter = new Intl.DateTimeFormat("zh-CN", {
+    timeZone: "Asia/Shanghai",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false,
+  });
+  const timeParts = formatter.format(date).split(":");
+  const hours = timeParts[0].padStart(2, "0");
+  const minutes = timeParts[1].padStart(2, "0");
+  const seconds = timeParts[2].padStart(2, "0");
 
   return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
 }

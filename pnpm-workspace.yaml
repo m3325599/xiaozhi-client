@@ -5,7 +5,7 @@ packages:
 
 allowBuilds:
   '@biomejs/biome': true
-  '@discordjs/opus': set this to true or false
+  '@discordjs/opus': true
   esbuild: true
   sharp: true
 

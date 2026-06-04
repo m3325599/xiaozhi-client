@@ -4,10 +4,17 @@
  */
 
 import { existsSync, readFileSync, statSync, writeFileSync } from "node:fs";
+import path from "node:path";
 import type { Context } from "hono";
-import { PathUtils } from "@/cli/utils/PathUtils";
 import type { AppContext } from "../types/hono.context";
 import { BaseHandler } from "./base.handler";
+
+/**
+ * 获取日志文件路径（服务器端专用）
+ */
+function getLogFilePath(): string {
+  return path.join(process.cwd(), "xiaozhi.log");
+}
 
 /**
  * 日志查看 API 处理器
@@ -24,7 +31,7 @@ export class LogHandler extends BaseHandler {
       const maxLines = linesParam ? Number.parseInt(linesParam, 10) : 0;
 
       // 获取日志文件路径
-      const logFilePath = PathUtils.getLogFile();
+      const logFilePath = getLogFilePath();
       const logger = c.get("logger");
 
       logger.info("读取日志文件", { path: logFilePath, maxLines });
@@ -73,7 +80,7 @@ export class LogHandler extends BaseHandler {
    */
   async cleanupLogs(c: Context<AppContext>): Promise<Response> {
     try {
-      const logFilePath = PathUtils.getLogFile();
+      const logFilePath = getLogFilePath();
       const logger = c.get("logger");
 
       logger.info("清理日志文件", { path: logFilePath });
