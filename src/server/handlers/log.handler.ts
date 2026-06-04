@@ -11,9 +11,12 @@ import { BaseHandler } from "./base.handler";
 
 /**
  * 获取日志文件路径（服务器端专用）
+ * 优先使用 XIAOZHI_CONFIG_DIR 环境变量，否则使用当前工作目录
  */
 function getLogFilePath(): string {
-  return path.join(process.cwd(), "xiaozhi.log");
+  const configDir = process.env.XIAOZHI_CONFIG_DIR;
+  const baseDir = configDir || process.cwd();
+  return path.join(baseDir, "xiaozhi.log");
 }
 
 /**
@@ -39,7 +42,7 @@ export class LogHandler extends BaseHandler {
       // 检查文件是否存在
       if (!existsSync(logFilePath)) {
         return c.success(
-          { content: "", lines: 0, size: 0 },
+          { content: "", lines: 0, size: 0, path: logFilePath },
           "日志文件不存在"
         );
       }
@@ -97,9 +100,9 @@ export class LogHandler extends BaseHandler {
       const content = readFileSync(logFilePath, "utf-8");
       const lines = content.split("\n");
 
-      // 计算两天前的时间戳
-      const twoDaysAgo = new Date();
-      twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
+      // 计算两天前的时间戳（使用北京时间）
+      const now = new Date();
+      const twoDaysAgo = new Date(now.getTime() - 2 * 24 * 60 * 60 * 1000);
       const twoDaysAgoTimestamp = twoDaysAgo.getTime();
 
       // 过滤保留近两天的日志
@@ -117,7 +120,8 @@ export class LogHandler extends BaseHandler {
         if (match) {
           const dateStr = match[1]; // 2026-06-04
           const timeStr = match[2]; // 03:40:25
-          const lineDate = new Date(`${dateStr} ${timeStr}`);
+          // 使用北京时间解析日期
+          const lineDate = new Date(`${dateStr}T${timeStr}+08:00`);
 
           if (lineDate.getTime() >= twoDaysAgoTimestamp) {
             keptLines.push(line);
@@ -151,6 +155,40 @@ export class LogHandler extends BaseHandler {
       );
     } catch (error) {
       return this.handleError(c, error, "清理日志文件", "LOG_CLEANUP_FAILED");
+    }
+  }
+
+  /**
+   * 清空日志文件（删除全部日志内容）
+   * POST /api/logs/clear
+   */
+  async clearLogs(c: Context<AppContext>): Promise<Response> {
+    try {
+      const logFilePath = getLogFilePath();
+      const logger = c.get("logger");
+
+      logger.info("清空日志文件", { path: logFilePath });
+
+      // 检查文件是否存在
+      if (!existsSync(logFilePath)) {
+        return c.success({ cleared: true }, "日志文件不存在，无需清空");
+      }
+
+      // 获取清空前的文件大小
+      const oldStat = statSync(logFilePath);
+      const oldSize = oldStat.size;
+
+      // 清空日志文件（写入空内容）
+      writeFileSync(logFilePath, "", "utf-8");
+
+      logger.info("日志清空完成", { oldSize, newSize: 0 });
+
+      return c.success(
+        { cleared: true, oldSize, newSize: 0 },
+        `日志清空成功，已删除 ${oldSize} 字节`
+      );
+    } catch (error) {
+      return this.handleError(c, error, "清空日志文件", "LOG_CLEAR_FAILED");
     }
   }
 }

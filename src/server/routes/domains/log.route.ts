@@ -22,4 +22,9 @@ export const logRoutes: RouteDefinition[] = [
     path: "/api/logs/cleanup",
     handler: h((handler, c) => handler.cleanupLogs(c)),
   },
+  {
+    method: "POST",
+    path: "/api/logs/clear",
+    handler: h((handler, c) => handler.clearLogs(c)),
+  },
 ];

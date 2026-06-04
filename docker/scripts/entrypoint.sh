@@ -1,9 +1,10 @@
 #!/bin/bash
 set -euo pipefail
 
-# 日志函数
+# 日志函数 - 使用北京时间
 log() {
-  echo "[$(date '+%Y-%m-%d %H:%M:%S')] $*"
+  # 使用 TZ 环境变量设置为北京时间输出日志
+  echo "[$(TZ=Asia/Shanghai date '+%Y-%m-%d %H:%M:%S')] $*"
 }
 
 log "Xiaozhi Client Docker 容器启动中..."

@@ -5,6 +5,7 @@
  * - 显示 xiaozhi.log 文件内容
  * - 支持日志检索/过滤功能
  * - 支持清理旧日志（只保留近两天）
+ * - 支持清空全部日志
  * - 自动滚动到最新日志
  */
 
@@ -19,10 +20,12 @@ import {
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
+  AlertCircleIcon,
   FileTextIcon,
   LoaderIcon,
   RefreshCwIcon,
   SearchIcon,
+  Trash2Icon,
   TrashIcon,
   XIcon,
 } from "lucide-react";
@@ -50,6 +53,8 @@ export function LogViewerDialog({
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [cleaning, setCleaning] = useState(false);
+  const [clearing, setClearing] = useState(false);
+  const [showClearConfirm, setShowClearConfirm] = useState(false);
   const logContainerRef = useRef<HTMLDivElement>(null);
 
   // 获取日志内容
@@ -75,7 +80,7 @@ export function LogViewerDialog({
     }
   }, []);
 
-  // 清理旧日志
+  // 清理旧日志（保留近两天）
   const cleanupLogs = useCallback(async () => {
     setCleaning(true);
     try {
@@ -101,6 +106,36 @@ export function LogViewerDialog({
       });
     } finally {
       setCleaning(false);
+    }
+  }, [fetchLogs]);
+
+  // 清空全部日志
+  const clearLogs = useCallback(async () => {
+    setClearing(true);
+    try {
+      const response = await fetch("/api/logs/clear", {
+        method: "POST",
+      });
+      const result = await response.json();
+
+      if (result.success) {
+        toast.success("日志清空成功", {
+          description: `已删除 ${result.data.oldSize} 字节`,
+        });
+        // 刷新日志
+        await fetchLogs();
+      } else {
+        toast.error("清空日志失败", {
+          description: result.message || "未知错误",
+        });
+      }
+    } catch (error) {
+      toast.error("清空日志失败", {
+        description: error instanceof Error ? error.message : "网络错误",
+      });
+    } finally {
+      setClearing(false);
+      setShowClearConfirm(false);
     }
   }, [fetchLogs]);
 
@@ -163,106 +198,143 @@ export function LogViewerDialog({
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl h-[80vh] flex flex-col">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <FileTextIcon size={20} />
-            日志查看
-          </DialogTitle>
-        </DialogHeader>
+    <>
+      <Dialog open={isOpen} onOpenChange={onClose}>
+        <DialogContent className="max-w-4xl h-[80vh] flex flex-col">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <FileTextIcon size={20} />
+              日志查看
+            </DialogTitle>
+          </DialogHeader>
 
-        {/* 搜索和操作栏 */}
-        <div className="flex items-center gap-2 py-2">
-          <div className="relative flex-1">
-            <SearchIcon
-              size={16}
-              className="absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground"
-            />
-            <Input
-              placeholder="搜索日志内容..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-8"
-            />
-            {searchTerm && (
-              <button
-                type="button"
-                onClick={() => setSearchTerm("")}
-                className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-              >
-                <XIcon size={16} />
-              </button>
-            )}
-          </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={fetchLogs}
-            disabled={loading}
-          >
-            <RefreshCwIcon
-              size={16}
-              className={loading ? "animate-spin" : ""}
-            />
-            刷新
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={cleanupLogs}
-            disabled={cleaning}
-          >
-            <TrashIcon size={16} className={cleaning ? "animate-pulse" : ""} />
-            清理旧日志
-          </Button>
-        </div>
-
-        {/* 日志信息 */}
-        {logData && (
-          <div className="flex items-center gap-4 text-sm text-muted-foreground py-1">
-            <span>路径: {logData.path}</span>
-            <span>行数: {logData.lines}</span>
-            <span>大小: {formatSize(logData.size)}</span>
-            {searchTerm && (
-              <span>
-                匹配: {filteredContent().split("\n").filter(l => l.trim()).length} 行
-              </span>
-            )}
-          </div>
-        )}
-
-        {/* 日志内容 */}
-        <ScrollArea className="flex-1 border rounded-md">
-          <div
-            ref={logContainerRef}
-            className="p-4 font-mono text-sm whitespace-pre-wrap break-all"
-          >
-            {loading ? (
-              <div className="flex items-center justify-center h-full">
-                <LoaderIcon size={24} className="animate-spin" />
-                <span className="ml-2">加载中...</span>
-              </div>
-            ) : logData?.content ? (
-              <div
-                dangerouslySetInnerHTML={{
-                  __html: highlightSearchTerm(filteredContent()),
-                }}
+          {/* 搜索和操作栏 */}
+          <div className="flex items-center gap-2 py-2">
+            <div className="relative flex-1">
+              <SearchIcon
+                size={16}
+                className="absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground"
               />
-            ) : (
-              <div className="text-muted-foreground text-center py-8">
-                暂无日志内容
-              </div>
-            )}
+              <Input
+                placeholder="搜索日志内容..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-8"
+              />
+              {searchTerm && (
+                <button
+                  type="button"
+                  onClick={() => setSearchTerm("")}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                >
+                  <XIcon size={16} />
+                </button>
+              )}
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={fetchLogs}
+              disabled={loading}
+            >
+              <RefreshCwIcon
+                size={16}
+                className={loading ? "animate-spin" : ""}
+              />
+              刷新
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={cleanupLogs}
+              disabled={cleaning}
+            >
+              <TrashIcon size={16} className={cleaning ? "animate-pulse" : ""} />
+              清理旧日志
+            </Button>
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={() => setShowClearConfirm(true)}
+              disabled={clearing}
+            >
+              <Trash2Icon size={16} className={clearing ? "animate-pulse" : ""} />
+              清空日志
+            </Button>
           </div>
-        </ScrollArea>
 
-        <DialogFooter>
-          <Button variant="outline" onClick={onClose}>
-            关闭
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+          {/* 日志信息 */}
+          {logData && (
+            <div className="flex items-center gap-4 text-sm text-muted-foreground py-1">
+              <span>路径: {logData.path}</span>
+              <span>行数: {logData.lines}</span>
+              <span>大小: {formatSize(logData.size)}</span>
+              {searchTerm && (
+                <span>
+                  匹配: {filteredContent().split("\n").filter(l => l.trim()).length} 行
+                </span>
+              )}
+            </div>
+          )}
+
+          {/* 日志内容 */}
+          <ScrollArea className="flex-1 border rounded-md">
+            <div
+              ref={logContainerRef}
+              className="p-4 font-mono text-sm whitespace-pre-wrap break-all"
+            >
+              {loading ? (
+                <div className="flex items-center justify-center h-full">
+                  <LoaderIcon size={24} className="animate-spin" />
+                  <span className="ml-2">加载中...</span>
+                </div>
+              ) : logData?.content ? (
+                <div
+                  dangerouslySetInnerHTML={{
+                    __html: highlightSearchTerm(filteredContent()),
+                  }}
+                />
+              ) : (
+                <div className="text-muted-foreground text-center py-8">
+                  暂无日志内容
+                </div>
+              )}
+            </div>
+          </ScrollArea>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={onClose}>
+              关闭
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* 清空日志确认对话框 */}
+      <Dialog open={showClearConfirm} onOpenChange={setShowClearConfirm}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-red-500">
+              <AlertCircleIcon size={20} />
+              确认清空日志
+            </DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            <p className="text-muted-foreground">
+              确定要清空所有日志内容吗？此操作将删除所有日志记录，且无法撤销。
+            </p>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowClearConfirm(false)}>
+              取消
+            </Button>
+            <Button variant="destructive" onClick={clearLogs} disabled={clearing}>
+              <Trash2Icon size={16} className={clearing ? "animate-pulse" : ""} />
+              确认清空
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
