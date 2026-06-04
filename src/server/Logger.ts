@@ -226,16 +226,12 @@ export class Logger {
       });
     }
 
-    // 文件流 - 如果有日志文件路径，使用高性能异步写入
+    // 文件流 - 如果有日志文件路径，使用高性能异步写入（带北京时间格式）
     if (this.logFilePath) {
+      const fileStream = this.createOptimizedFileStream();
       streams.push({
         level: this.logLevel, // 修改：使用动态日志级别
-        stream: pino.destination({
-          dest: this.logFilePath,
-          sync: false, // 异步写入提升性能
-          append: true,
-          mkdir: true,
-        }),
+        stream: fileStream,
       });
     }
 
@@ -251,8 +247,7 @@ export class Logger {
       {
         level: this.logLevel, // 修改：使用动态日志级别
         // 高性能配置
-        timestamp:
-          pino.stdTimeFunctions?.isoTime || (() => `,"time":${Date.now()}`),
+        timestamp: () => `,"time":${Date.now()}`,
         formatters: {
           // 优化级别格式化
           level: (_label: string, number: number) => ({ level: number }),
@@ -266,6 +261,59 @@ export class Logger {
       },
       pino.multistream(streams, { dedupe: true })
     );
+  }
+
+  /**
+   * 创建优化的文件日志流处理器
+   * 将 JSON 日志格式化为带北京时间的文本格式
+   */
+  private createOptimizedFileStream() {
+    // 预编译级别映射
+    const levelMap = new Map([
+      [20, "DEBUG"],
+      [30, "INFO"],
+      [40, "WARN"],
+      [50, "ERROR"],
+      [60, "FATAL"],
+    ]);
+
+    // 创建文件写入流
+    const fileDest = pino.destination({
+      dest: this.logFilePath,
+      sync: false, // 异步写入提升性能
+      append: true,
+      mkdir: true,
+    });
+
+    return {
+      write: (chunk: string) => {
+        try {
+          const logObj = JSON.parse(chunk);
+          const timestamp = formatDateTime(new Date());
+          const levelName = levelMap.get(logObj.level) || "UNKNOWN";
+          let message = logObj.msg;
+
+          // 处理 args
+          if (logObj.args && Array.isArray(logObj.args)) {
+            const argsStr = logObj.args
+              .map((arg: any) =>
+                typeof arg === "object" ? JSON.stringify(arg) : String(arg)
+              )
+              .join(" ");
+            message = `${message} ${argsStr}`;
+          }
+
+          // 写入格式化后的日志（使用北京时间）
+          fileDest.write(`[${timestamp}] [${levelName}] ${message}\n`);
+        } catch (error) {
+          // 如果解析失败，直接输出原始内容
+          fileDest.write(chunk);
+        }
+      },
+      end: (cb?: () => void) => {
+        fileDest.end(cb);
+      },
+    };
   }
 
   private createOptimizedConsoleStream() {
