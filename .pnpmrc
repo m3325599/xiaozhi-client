@@ -1,0 +1,4 @@
+allow-builds["@discordjs/opus"]=true
+allow-builds["@biomejs/biome"]=true
+allow-builds["esbuild"]=true
+allow-builds["sharp"]=true

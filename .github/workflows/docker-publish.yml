@@ -96,15 +96,11 @@ jobs:
           pnpm --version
           pnpm config list
           
-          # 批准必要的构建脚本
+          # 构建脚本已通过 .pnpmrc 文件批准
           echo "========================================"
-          echo "批准构建脚本..."
+          echo "构建脚本已通过 .pnpmrc 文件批准..."
           echo "========================================"
-          pnpm config set 'allowBuilds["@discordjs/opus"]' true
-          pnpm config set 'allowBuilds["@biomejs/biome"]' true
-          pnpm config set 'allowBuilds["esbuild"]' true
-          pnpm config set 'allowBuilds["sharp"]' true
-          echo "已批准所有构建脚本"
+          pnpm config list | grep allow-builds
           
           # 第一步：安装基础依赖（不包含 optional）
           echo "========================================"
